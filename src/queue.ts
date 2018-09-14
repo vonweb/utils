@@ -1,30 +1,34 @@
 class Queue {
   _queue: any[] = []
-  _courrency = 0
+  _concurrency = 0
   constructor (public _limit = 3) {}
 
   pop () {
-    if (this._courrency >= this._limit) {
+    // 并发数达到限制
+    if (this._concurrency >= this._limit) {
       return
     }
 
     const next = this._queue.shift()
     const _handleNext = (e?: Error) => {
-      console.log('-----complete', this._courrency, this._queue.length)
+      console.log('-----complete', this._concurrency, this._queue.length)
       e && console.log('error', e)
-      this._courrency--
+      this._concurrency--
       this.pop()
     }
     if (next) {
-      this._courrency++
+      this._concurrency++
 
+      // 队列中任务完成不论成功失败，都开始执行下个任务
       Promise.resolve(next()).then(() => _handleNext(), _handleNext)
     }
   }
 
   push (p: any) {
-    console.log('++++++push', this._courrency, this._queue.length)
+    // 增加队列任务
+    console.log('++++++push', this._concurrency, this._queue.length)
     this._queue.push(p)
+    // 触发任务执行
     this.pop()
     return this
   }
